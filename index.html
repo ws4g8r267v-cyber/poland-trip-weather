@@ -12,7 +12,6 @@
             --text-muted: #94a3b8;
             --accent: #38bdf8;
             --border: #334155;
-            --warning: #eab308;
         }
 
         body {
@@ -28,6 +27,7 @@
         .container {
             width: 100%;
             max-width: 450px;
+            padding-bottom: 40px;
         }
 
         header {
@@ -37,17 +37,7 @@
             padding: 18px;
             margin-bottom: 15px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-        }
-
-        .badge-paper {
-            background: var(--warning);
-            color: #000;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.75rem;
-            display: inline-block;
-            margin-bottom: 8px;
+            text-align: center;
         }
 
         h1 {
@@ -72,15 +62,16 @@
 
         .info-box {
             background: rgba(255, 255, 255, 0.05);
-            padding: 6px;
+            padding: 8px 4px;
             border-radius: 8px;
             border: 1px solid var(--border);
         }
 
-        .info-box b {
+        .info-box b, .info-box span#pl-time, .info-box span#il-time, .info-box span#countdown-days {
             display: block;
             font-size: 1rem;
             color: var(--text-main);
+            font-weight: bold;
         }
 
         .days-grid {
@@ -104,6 +95,7 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            text-align: right;
         }
 
         .day-date {
@@ -122,6 +114,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            direction: ltr;
         }
 
         .weather-icon {
@@ -141,13 +134,13 @@
             text-align: center;
             font-size: 0.75rem;
             color: var(--text-muted);
-            line-height: 1.5;
+            line-height: 1.6;
         }
 
         footer .credits-title {
             color: var(--accent);
             font-weight: bold;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
     </style>
 </head>
@@ -155,22 +148,21 @@
 
     <div class="container">
         <header>
-            <div class="badge-paper">תצוגה: על הנייר (תכנון מקדים)</div>
             <h1>מזג אוויר · המסע לפולין</h1>
-            <div class="subtitle">18–24 בנובמבר 2026 · חבורת צפרירים</div>
+            <div class="subtitle">18–24 בנובמבר 2026</div>
             
             <div class="clocks-countdown">
                 <div class="info-box">
-                    <span id="pl-time">13:45</span>
-                    <span>שעון פולין</span>
+                    <span id="pl-time">--:--</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">שעון פולין</span>
                 </div>
                 <div class="info-box">
-                    <span id="il-time">14:45</span>
-                    <span>שעון ישראל</span>
+                    <span id="il-time">--:--</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">שעון ישראל</span>
                 </div>
                 <div class="info-box">
-                    <b>47</b>
-                    <span>ימים ליציאה</span>
+                    <span id="countdown-days">--</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">ימים ליציאה</span>
                 </div>
             </div>
         </header>
@@ -235,11 +227,11 @@
             <div class="day-card">
                 <div class="day-info">
                     <div class="day-date">שני, 23 נובמבר</div>
-                    <div class="desc">גשם מדי פעם</div>
+                    <div class="desc`">גשם מדי פעם</div>
                 </div>
                 <div class="weather-right">
                     <div class="temp">5° / 2°</div>
-                    <div class="weather-icon">🌧️️</div>
+                    <div class="weather-icon">🌧</div>
                 </div>
             </div>
             <!-- 24 Nov -->
@@ -258,9 +250,34 @@
         <footer>
             <div class="credits-title">קרדיטים ומקורות מידע</div>
             <div>תחזית: MET Norway · מודלים: ICON, ECMWF, GFS · מדידה: METAR NOAA</div>
-            <div style="margin-top: 4px; color: var(--text-main);">גרסה 1.2 · חבורת צפרירים 2026</div>
+            <div style="margin-top: 6px; color: var(--text-main); font-weight: bold;">גרסה 1.5 · 2026</div>
         </footer>
     </div>
+
+    <script>
+        function updateClocksAndCountdown() {
+            const now = new Date();
+
+            // שעון ישראל (Asia/Jerusalem)
+            const optionsIL = { timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            document.getElementById('il-time').innerText = new Intl.DateTimeFormat('en-GB', optionsIL).format(now);
+
+            // שעון פולין (Europe/Warsaw)
+            const optionsPL = { timeZone: 'Europe/Warsaw', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            document.getElementById('pl-time').innerText = new Intl.DateTimeFormat('en-GB', optionsPL).format(now);
+
+            // ספירה לאחור לתאריך היעד: 18 בנובמבר 2026
+            const targetDate = new Date('2026-11-18T00:00:00');
+            const diffTime = targetDate - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            document.getElementById('countdown-days').innerText = diffDays >= 0 ? diffDays : 0;
+        }
+
+        // הפעלה ראשונית ועדכון כל שנייה
+        updateClocksAndCountdown();
+        setInterval(updateClocksAndCountdown, 1000);
+    </script>
 
 </body>
 </html>
