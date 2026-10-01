@@ -3,125 +3,196 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#14171c">
+<meta name="theme-color" content="#0f1f38">
 <title>מזג אוויר · המסע לפולין</title>
 <style>
 :root{
-  --bg:#14171c; --card:#1d2128; --card2:#242932; --line:#323844;
-  --ink:#e8eaee; --ink2:#a9b0bc; --ink3:#7d8593;
-  --accent:#9db7d6; --warn:#e2b86b; --cold:#8fc3e8; --rain:#7fa8d9; --ok:#8fcf9f;
-  --sample:#6b5a2e;
+  --bg-grad: linear-gradient(135deg, #0b172c 0%, #162b4d 50%, #0d192e 100%);
+  --card-bg: rgba(25, 43, 71, 0.65);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --ink: #f8fafc; 
+  --ink2: #94a3b8; 
+  --ink3: #64748b;
+  --accent: #3b82f6; 
+  --accent-glow: rgba(59, 130, 246, 0.4);
+  --warn: #f59e0b; 
+  --warn-bg: rgba(245, 158, 11, 0.15);
+  --ok: #4ade80;
+  --chip-bg: rgba(255, 255, 255, 0.06);
+  --chip-border: rgba(255, 255, 255, 0.1);
 }
-@media (prefers-color-scheme: light){
-  :root:not([data-theme="dark"]){
-    --bg:#f3f4f6; --card:#ffffff; --card2:#f0f2f5; --line:#d9dde3;
-    --ink:#1b1f26; --ink2:#4d5563; --ink3:#6f7785;
-    --accent:#2f5f8f; --warn:#9a6a12; --cold:#2a6f9e; --rain:#2f5f9e; --ok:#2e7d45;
-    --sample:#f3e3b5;
-  }
-}
+
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);
-  font-family:system-ui,-apple-system,"Segoe UI",Arial,"Noto Sans Hebrew",sans-serif;
-  -webkit-text-size-adjust:100%}
-.wrap{max-width:760px;margin:0 auto;padding:16px 16px 40px}
-h1{font-size:20px;margin:4px 0 2px;font-weight:700}
-.sub{color:var(--ink2);font-size:14px}
-.sample{background:var(--sample);color:var(--ink);border-radius:10px;
-  padding:10px 12px;font-size:13.5px;margin:12px 0;line-height:1.5}
-.clocks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
-.clk{background:var(--card);border:1px solid var(--line);border-radius:12px;
-  padding:10px 8px;text-align:center}
-.clk b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
-.clk span{font-size:12px;color:var(--ink2)}
-.mode{background:var(--card);border:1px solid var(--line);border-radius:12px;
-  padding:10px 12px;font-size:13.5px;color:var(--ink2);line-height:1.55}
-.mode b{color:var(--ink)}
-.days{display:flex;gap:6px;overflow-x:auto;margin:14px -16px 10px;padding:0 16px 4px;
-  scrollbar-width:none}
-.days::-webkit-scrollbar{display:none}
-.day{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);
-  border-radius:10px;padding:8px 10px;font-size:13px;text-align:center;cursor:pointer;
-  min-width:62px;font-family:inherit}
-.day small{display:block;color:var(--ink3);font-size:11px;margin-top:2px}
-.day[aria-pressed="true"]{border-color:var(--accent);background:var(--card2);
-  box-shadow:inset 0 -2px 0 var(--accent)}
-.daynote{font-size:13px;color:var(--ink2);margin:0 0 10px}
-.site{background:var(--card);border:1px solid var(--line);border-radius:14px;
-  padding:14px;margin-bottom:12px}
-.site h2{font-size:16.5px;margin:0}
-.site .where{font-size:12.5px;color:var(--ink3);margin-top:2px}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.temp{text-align:left;white-space:nowrap}
-.temp b{font-size:24px;font-variant-numeric:tabular-nums}
-.temp span{display:block;font-size:12px;color:var(--ink2)}
-.temp span .ltr,.temp b .ltr{display:inline-block}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
-.cell{background:var(--card2);border-radius:10px;padding:8px;text-align:center}
-.cell small{display:block;font-size:11.5px;color:var(--ink3)}
-.cell b{font-size:15px;font-variant-numeric:tabular-nums}
-.wear{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;
-  background:var(--card2)}
-.chip.c{border-color:var(--cold);color:var(--cold)}
-.chip.r{border-color:var(--rain);color:var(--rain)}
-.chip.w{border-color:var(--warn);color:var(--warn)}
-details{margin-top:10px;font-size:13px;color:var(--ink2)}
-summary{cursor:pointer;color:var(--accent);list-style:none}
-summary::-webkit-details-marker{display:none}
-summary::before{content:"◂ "}
-details[open] summary::before{content:"▾ "}
-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
-th,td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:center}
-th{color:var(--ink3);font-weight:500}
-td:first-child,th:first-child{text-align:right}
-.spread{margin-top:6px;font-size:12.5px}
-.actual{margin-top:10px;font-size:12.5px;color:var(--ink3);border-top:1px dashed var(--line);
-  padding-top:8px;line-height:1.5}
-.far{color:var(--warn)}
-.foot{font-size:12px;color:var(--ink3);line-height:1.6;margin-top:18px}
-.ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}
-</style>
-<style>
-.stamp{font-size:12.5px;color:var(--ink3);margin-top:6px}
-.badge{font-size:11.5px;border-radius:6px;padding:2px 7px;margin-inline-start:6px;
-  vertical-align:middle;border:1px solid var(--line);color:var(--ink2);font-weight:500}
-.badge.fc{border-color:var(--ok);color:var(--ok)}
-.badge.cl{border-color:var(--warn);color:var(--warn)}
-.warnline{font-size:12.5px;color:var(--warn);margin-top:6px}
-.empty{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:14px;
-  font-size:14px;color:var(--ink2);margin:12px 0}
+html,body{
+  margin:0; min-height:100vh;
+  background: var(--bg-grad); color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Arial, "Noto Sans Hebrew", sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+.wrap{max-width:1200px;margin:0 auto;padding:24px 20px 48px}
+
+/* Header */
+header{
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 24px; border-bottom: 1px solid var(--card-border); padding-bottom: 16px;
+  flex-wrap: wrap; gap: 16px;
+}
+.header-titles h1{font-size: 26px; margin: 0 0 6px; font-weight: 800; letter-spacing: -0.02em; color: #fff;}
+.header-titles .sub{color: var(--ink2); font-size: 14px; font-weight: 500;}
+.stamp{font-size: 12px; color: var(--ink3); margin-top: 6px; display: flex; align-items: center; gap: 6px;}
+
+.header-right {
+  text-align: left;
+}
+.mode {
+  background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+  padding: 10px 14px; font-size: 13px; color: var(--ink2); line-height: 1.5;
+  backdrop-filter: blur(8px); max-width: 420px;
+}
+.mode b { color: var(--ink); }
+
+.warnline{font-size: 13px; color: var(--warn); background: var(--warn-bg); border: 1px solid var(--warn); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-weight: 500;}
+
+/* Top Bar: Clocks & Days */
+.top-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 24px; gap: 16px; flex-wrap: wrap;
+}
+.clocks{display: flex; gap: 12px;}
+.clk{
+  background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+  padding: 10px 16px; text-align: center; backdrop-filter: blur(8px);
+  box-shadow: var(--card-shadow); min-width: 110px;
+}
+.clk b{display: block; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); letter-spacing: -1px;}
+.clk span{font-size: 11.5px; color: var(--ink2); margin-top: 2px; display: block;}
+
+.days{display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;}
+.days::-webkit-scrollbar{display: none;}
+.day{
+  flex: 0 0 auto; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--ink);
+  border-radius: 10px; padding: 8px 12px; font-size: 13px; text-align: center; cursor: pointer;
+  min-width: 54px; font-family: inherit; transition: all 0.2s ease; backdrop-filter: blur(8px);
+}
+.day small{display: block; color: var(--ink3); font-size: 10.5px; margin-top: 2px; font-weight: 500;}
+.day[aria-pressed="true"]{
+  border-color: var(--accent); background: var(--accent); color: #ffffff;
+  box-shadow: 0 4px 16px var(--accent-glow);
+}
+.day[aria-pressed="true"] small{color: rgba(255,255,255,0.85)}
+
+.daynote{font-size: 13.5px; color: var(--ink2); margin: 0 0 16px; font-weight: 500;}
+
+/* Sites Grid */
+.sites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.site{
+  background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 18px;
+  padding: 16px; box-shadow: var(--card-shadow); backdrop-filter: blur(12px);
+  display: flex; flex-direction: column; justify-content: space-between;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.site:hover { border-color: rgba(59, 130, 246, 0.3); transform: translateY(-2px); }
+
+.site-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.site h2{font-size: 16px; margin: 0; font-weight: 700; color: #fff;}
+.site .where{font-size: 11.5px; color: var(--ink3); margin-top: 2px; line-height: 1.3;}
+
+/* Weather Display inside Card */
+.weather-main {
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px;
+}
+.temp-box b { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; color: #fff; display: block; }
+.temp-box span { font-size: 11px; color: var(--ink2); display: block; margin-top: 2px; }
+.weather-icon { font-size: 24px; }
+
+/* Grid metrics */
+.grid{display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px;}
+.cell{background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.04); border-radius: 10px; padding: 8px 4px; text-align: center;}
+.cell small{display: block; font-size: 10px; color: var(--ink3); margin-bottom: 2px;}
+.cell b{font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: #fff;}
+
+/* Wear Chips */
+.wear{margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 5px;}
+.chip{
+  font-size: 11px; font-weight: 500; border: 1px solid var(--chip-border); border-radius: 16px; padding: 4px 10px;
+  background: var(--chip-bg); color: var(--ink);
+}
+.chip.c{border-color: rgba(2, 132, 199, 0.4); background: rgba(2, 132, 199, 0.12); color: #38bdf8;}
+.chip.r{border-color: rgba(3, 105, 161, 0.4); background: rgba(3, 105, 161, 0.12); color: #7dd3fc;}
+.chip.w{border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.12); color: #fcd34d;}
+
+/* Models Accordion */
+details{font-size: 12px; color: var(--ink2); border-top: 1px solid var(--card-border); padding-top: 8px; margin-top: auto;}
+summary{cursor: pointer; color: var(--accent); list-style: none; font-weight: 500; display: flex; justify-content: space-between; align-items: center;}
+summary::-webkit-details-marker{display: none;}
+summary::after{content: "▼"; font-size: 9px; transition: transform 0.2s;}
+details[open] summary::after{transform: rotate(180deg);}
+
+table{width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11.5px;}
+th, td{padding: 4px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center;}
+th{color: var(--ink3); font-weight: 600;}
+td:first-child, th:first-child{text-align: right;}
+.spread{margin-top: 6px; font-size: 11px; color: var(--ink2);}
+
+.actual{margin-top: 10px; font-size: 11px; color: var(--ink3); border-top: 1px dashed var(--card-border); padding-top: 8px; line-height: 1.4;}
+.far{color: var(--warn); font-weight: 500;}
+
+.foot{font-size: 11.5px; color: var(--ink3); line-height: 1.6; margin-top: 24px; border-top: 1px solid var(--card-border); padding-top: 16px;}
+.ltr{direction: ltr; unicode-bidi: isolate; display: inline-block;}
+
+.badge{font-size: 10px; border-radius: 6px; padding: 2px 6px; vertical-align: middle; border: 1px solid var(--card-border); color: var(--ink2); font-weight: 600; display: inline-block;}
+.badge.fc{border-color: rgba(74, 222, 128, 0.4); background: rgba(74, 222, 128, 0.1); color: var(--ok);}
+.badge.cl{border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1); color: var(--warn);}
+
+.empty{background: var(--card-bg); border: 1px dashed var(--card-border); border-radius: 14px; padding: 16px; font-size: 13px; color: var(--ink2); margin: 12px 0; text-align: center;}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>מזג אוויר · המסע לפולין</h1>
-  <div class="sub"><span class="ltr">18–24</span> בנובמבר 2026 · ורשה · טרבלינקה · מיידנק · אושוויץ-בירקנאו · קראקוב</div>
-  <div class="stamp" id="stamp">טוען…</div>
+  <header>
+    <div class="header-titles">
+      <h1>מזג אוויר · המסע לפולין</h1>
+      <div class="sub"><span class="ltr">18–24</span> בנובמבר 2026 · חבורת צפרירים · ורשה · טרבלינקה · מיידנק · אושוויץ-בירקנאו · קראקוב</div>
+      <div class="stamp" id="stamp">טוען…</div>
+    </div>
+    <div class="header-right">
+      <div class="mode" id="mode">טוען…</div>
+    </div>
+  </header>
+
   <div class="warnline" id="warn" hidden></div>
 
-  <div class="clocks">
-    <div class="clk"><b id="tpl">--:--</b><span>שעון פולין</span></div>
-    <div class="clk"><b id="til">--:--</b><span>שעון ישראל</span></div>
-    <div class="clk"><b id="tcd">--</b><span>ימים ליציאה</span></div>
+  <div class="top-bar">
+    <div class="clocks">
+      <div class="clk"><b id="tpl">--:--</b><span>שעון פולין</span></div>
+      <div class="clk"><b id="til">--:--</b><span>שעון ישראל</span></div>
+      <div class="clk"><b id="tcd">--</b><span>ימים ליציאה</span></div>
+    </div>
+    <div class="days" id="days" role="tablist"></div>
   </div>
 
-  <div class="mode" id="mode">טוען…</div>
-
-  <div class="days" id="days" role="tablist"></div>
-  <p class="daynote" id="daynote"></p>
-  <div id="sites"></div>
+  <div class="daynote" id="daynote"></div>
+  <div class="sites-grid" id="sites"></div>
 
   <div class="foot">
     תחזית: <span class="ltr">MET Norway</span> (<span class="ltr">CC BY 4.0</span>) · השוואת מודלים <span class="ltr">ICON</span>, <span class="ltr">ECMWF</span>, <span class="ltr">GFS</span> ו-ממוצע עונה מ-<span class="ltr">Open-Meteo</span> (<span class="ltr">CC BY 4.0</span>). מדידה בפועל: <span class="ltr">METAR</span> של <span class="ltr">NOAA</span> משדות התעופה ורשה (<span class="ltr">EPWA</span>), קראקוב (<span class="ltr">EPKK</span>) ולובלין (<span class="ltr">EPLB</span>). זריחה ושקיעה מחושבות לכל אתר. שעות לפי שעון פולין.<br>
     כל המספרים בתחזית הם מודלים, לא מדידה. כשהמודלים רחוקים זה מזה, התחזית פחות בטוחה.
-    <div id="ver" style="margin-top:6px">גרסה 0.1</div>
+    <div id="ver" style="margin-top:6px">גרסה 0.2</div>
   </div>
 </div>
 
 <script>
-/* poland-trip-weather · index.html v0.1 */
-const VERSION="0.1";
+/* poland-trip-weather · index.html v0.2 */
+const VERSION="0.2";
 const DEPART_UTC = Date.UTC(2026,10,18,4,0);   // 18/11 06:00 שעון ישראל = 04:00Z
 const DAYS = [18,19,20,21,22,23,24];
 const DOW  = {18:"ד׳",19:"ה׳",20:"ו׳",21:"שבת",22:"א׳",23:"ב׳",24:"ג׳"};
@@ -148,7 +219,7 @@ const SITES = [
 function km(a,b){const R=6371,r=x=>x*Math.PI/180,dl=r(b.lat-a.lat),dn=r(b.lon-a.lon);
   const h=Math.sin(dl/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dn/2)**2;
   return Math.round(2*R*Math.asin(Math.sqrt(h)));}
-function chill(t,v){ // טמפרטורה מורגשת (JAG/TI), תקף עד 10° ורוח מעל 4.8 קמ"ש
+function chill(t,v){ 
   if(t==null) return null; if(v==null||t>10||v<4.8) return Math.round(t);
   const p=Math.pow(v,0.16); return Math.round(13.12+0.6215*t-11.37*p+0.3965*t*p);}
 function hrs(a,b){const m=s=>+s.slice(0,2)*60+ +s.slice(3);const d=m(b)-m(a);
@@ -210,7 +281,7 @@ function drawHeader(){
   const st=document.getElementById("stamp"), wn=document.getElementById("warn");
   if(!DATA){ st.textContent="אין עדיין נתונים מהאוסף."; return; }
   const g=Date.parse(DATA.generated), age=(Date.now()-g)/3600000;
-  st.innerHTML=`עודכן ${dm(g,"Europe/Warsaw")} · <span class="ltr">${tm(g,"Europe/Warsaw")}</span> שעון פולין · <span class="ltr">${tm(g,"Asia/Jerusalem")}</span> שעון ישראל`;
+  st.innerHTML=`עודכן ${dm(g,"Europe/Warsaw")} · <span class="ltr">${tm(g,"Europe/Warsaw")}</span> שעון פולין`;
   const bad=Object.entries(DATA.sources||{}).filter(([k,v])=>(v.errors||[]).length||v.stale_since).map(([k])=>k);
   const msgs=[];
   if(age>8) msgs.push("⚠️ הנתונים בני יותר מ-8 שעות.");
@@ -223,10 +294,10 @@ function drawMode(){
   const fcDays=DAYS.filter(d=>SITES.some(s=>pick(s,d).mode==="fc"));
   let s;
   if(!DATA) s="<b>ממתין לריצה הראשונה של האוסף.</b> בינתיים מוצגים זריחה, שקיעה ושעונים.";
-  else if(!fcDays.length) s=`<b>עכשיו: ממוצעי עונה</b> של השנים <span class="ltr">${(DATA.climate_years||[]).join("–")}</span> בתאריכים <span class="ltr">18–24/11</span>. התחזית הראשונה לימי המסע תופיע בסביבות <span class="ltr">03/11</span>, ותהיה אמינה בערך מ-<span class="ltr">11/11</span>. המסך יתחלף לבד.`;
-  else if(fcDays.length<DAYS.length) s=`<b>עכשיו: תחזית ל-${fcDays.length} מתוך ${DAYS.length} ימי המסע.</b> שאר הימים עוד בממוצע עונה. ככל שהיום קרוב, התחזית אמינה יותר.`;
+  else if(!fcDays.length) s=`<b>עכשיו: ממוצעי עונה</b> של השנים <span class="ltr">${(DATA.climate_years||[]).join("–")}</span> בתאריכים <span class="ltr">18–24/11</span>.`;
+  else if(fcDays.length<DAYS.length) s=`<b>עכשיו: תחזית ל-${fcDays.length} מתוך ${DAYS.length} ימי המסע.</b> שאר הימים עוד בממוצע עונה.`;
   else s="<b>עכשיו: תחזית לכל ימי המסע.</b> מתעדכנת כל 3 שעות.";
-  box.innerHTML=s+" בנובמבר פולין ב-<span class=\"ltr\">UTC+1</span> וישראל ב-<span class=\"ltr\">UTC+2</span>: שעון פולין מאחר בשעה.";
+  box.innerHTML=s+" שעון פולין מאחר בשעה.";
 }
 function drawDays(){
   const box=document.getElementById("days"); box.innerHTML="";
@@ -236,54 +307,66 @@ function drawDays(){
     b.onclick=()=>{cur=d;drawDays();drawSites();}; box.appendChild(b);
   });
   document.getElementById("daynote").textContent=
-    "יום "+DOW[cur]+" "+cur+"/11 · סדר האתרים לפי ימים יתווסף מתוכנית המסע. עד אז מוצגים כל חמשת האתרים.";
+    "יום "+DOW[cur]+" "+cur+"/11 · הצגת כל אתרי המסע:";
 }
 function metarLine(site){
   const st=STATIONS[site.st], dist=km(site,st), far=dist>50;
-  let s=`בפועל · ${st.name} (<span class="ltr">${site.st}</span>) · <span class="${far?"far":""}">${dist} ק"מ מהאתר${far?" · רחוק, מדד כללי בלבד":""}</span>`;
+  let s=`בפועל · ${st.name} (<span class="ltr">${site.st}</span>) · <span class="${far?"far":""}">${dist} ק"מ</span>`;
   const m=DATA?.metar?.[site.st];
   if(m&&m.obs){
     const ms=m.obs*1000, h=(Date.now()-ms)/3600000;
-    s+=`<br>נמדד ב-<span class="ltr">${tm(ms,"Europe/Warsaw")}</span> שעון פולין: <span class="ltr">${T(m.temp)}</span> · רוח ${N(m.wind)}${m.gust?" משבים "+m.gust:""} קמ"ש${m.wx?" · <span class=\"ltr\">"+m.wx+"</span>":""}${h>3?' <span class="far">· מדידה ישנה</span>':""}`;
-  } else s+="<br>אין מדידה זמינה כרגע.";
+    s+=`<br>נמדד <span class="ltr">${tm(ms,"Europe/Warsaw")}</span>: <span class="ltr">${T(m.temp)}</span> · רוח ${N(m.wind)} קמ"ש${h>3?' <span class="far">· ישן</span>':""}`;
+  } else s+="<br>אין מדידה כרגע.";
   return s;
 }
 function drawSites(){
   const box=document.getElementById("sites"); box.innerHTML="";
-  SITES.forEach(s=>{
+  SITES.forEach((s,idx)=>{
     const w=pick(s,cur), sun=s.sun[cur];
-    const el=document.createElement("section"); el.className="site";
-    const badge=w.mode==="fc"?'<span class="badge fc">תחזית</span>':w.mode==="cl"?'<span class="badge cl">ממוצע עונה</span>':"";
+    const el=document.createElement("div"); el.className="site";
+    const badge=w.mode==="fc"?'<span class="badge fc">תחזית</span>':w.mode==="cl"?'<span class="badge cl">עונה</span>':"";
     let body="";
     if(w.mode!=="none"){
       const fmax=chill(w.tmax,w.wind), fmin=chill(w.tmin,w.wind);
       const mv=Object.values(w.models), spread=mv.length>1?(Math.max(...mv)-Math.min(...mv)):null;
-      const rainTop=w.mode==="cl"?"ימי גשם":"גשם";
+      const rainTop=w.mode==="cl"?"גשם (עונה)":"גשם";
       body=`
+      <div class="weather-main">
+        <div class="temp-box">
+          <b><span class="ltr">${T(w.tmin)} / ${T(w.tmax)}</span></b>
+          <span>מורגש <span class="ltr">${T(fmin)}–${T(fmax)}</span></span>
+        </div>
+        <div class="weather-icon">⛅</div>
+      </div>
       <div class="grid">
-        <div class="cell"><small>${rainTop}</small><b>${w.pop!=null?w.pop+"%":"—"}</b><small>${N(w.mm)} מ"מ${w.mode==="cl"?" ממוצע":""}</small></div>
-        <div class="cell"><small>רוח</small><b>${N(w.wind)}</b><small>${w.gust!=null?"משבים "+w.gust+" ":""}קמ"ש</small></div>
-        <div class="cell"><small>אור יום</small><b style="font-size:12.5px;white-space:nowrap"><span class="ltr">${sun[0]}–${sun[1]}</span></b><small>${hrs(sun[0],sun[1])} שעות</small></div>
+        <div class="cell"><small>${rainTop}</small><b>${w.pop!=null?w.pop+"%":"—"}</b></div>
+        <div class="cell"><small>רוח</small><b>${N(w.wind)}</b></div>
+        <div class="cell"><small>אור יום</small><b style="font-size:11px"><span class="ltr">${sun[0]}-${sun[1]}</span></b></div>
       </div>
       <div class="wear">${wear(s,w,cur).map(c=>`<span class="chip ${c[0]}">${c[1]}</span>`).join("")}</div>
-      ${mv.length?`<details><summary>השוואת מודלים · אותה נקודה</summary>
+      ${mv.length?`<details><summary>השוואת מודלים</summary>
         <table><tr><th>מודל</th><th>מקסימום</th></tr>
           ${Object.entries(w.models).map(([k,v])=>`<tr><td>${k}</td><td><span class="ltr">${T(v)}</span></td></tr>`).join("")}
         </table>
-        ${spread!=null?`<div class="spread">פער בין המודלים: <span class="ltr">${spread.toFixed(1)}°</span> ${spread>=3?"· התחזית לא בטוחה":"· המודלים קרובים"}</div>`:""}
+        ${spread!=null?`<div class="spread">פער: <span class="ltr">${spread.toFixed(1)}°</span></div>`:""}
       </details>`:""}`;
       el.innerHTML=`
-      <div class="top">
-        <div><h2>${s.name}${badge}</h2><div class="where">${s.where}</div></div>
-        <div class="temp"><b><span class="ltr">${T(w.tmin)} / ${T(w.tmax)}</span></b>
-          <span>מורגש <span class="ltr">${T(fmin)}</span> עד <span class="ltr">${T(fmax)}</span></span></div>
-      </div>${body}
+      <div>
+        <div class="site-header">
+          <div><h2>${idx+1}. ${s.name} ${badge}</h2><div class="where">${s.where}</div></div>
+        </div>
+        ${body}
+      </div>
       <div class="actual">${metarLine(s)}</div>`;
     } else {
       el.innerHTML=`
-      <div class="top"><div><h2>${s.name}</h2><div class="where">${s.where}</div></div></div>
-      <div class="grid"><div class="cell" style="grid-column:span 3"><small>אור יום</small><b><span class="ltr">${sun[0]}–${sun[1]}</span></b><small>${hrs(sun[0],sun[1])} שעות</small></div></div>
-      <div class="wear">${wear(s,{},cur).map(c=>`<span class="chip ${c[0]}">${c[1]}</span>`).join("")}</div>
+      <div>
+        <div class="site-header">
+          <div><h2>${idx+1}. ${s.name}</h2><div class="where">${s.where}</div></div>
+        </div>
+        <div class="grid"><div class="cell" style="grid-column:span 3"><small>אור יום</small><b><span class="ltr">${sun[0]}–${sun[1]}</span></b></div></div>
+        <div class="wear">${wear(s,{},cur).map(c=>`<span class="chip ${c[0]}">${c[1]}</span>`).join("")}</div>
+      </div>
       <div class="actual">${metarLine(s)}</div>`;
     }
     box.appendChild(el);
