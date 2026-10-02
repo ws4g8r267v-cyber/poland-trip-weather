@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""poland-trip-weather · collect.py v0.1
+"""poland-trip-weather · collect.py v0.1.1
 
 אוסף מזג אוויר למסע לפולין (18–24/11/2026). רץ ב-GitHub Actions, כותב
 data/latest.json שהמסך (index.html) קורא. ספרייה סטנדרטית בלבד, בלי תלויות.
@@ -22,7 +22,7 @@ import urllib.request
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
-VERSION = "0.1"
+VERSION = "0.1.1"
 UA = "poland-trip-weather/0.1 github.com/ws4g8r267v-cyber/poland-trip-weather"
 TZ_PL = ZoneInfo("Europe/Warsaw")
 TIMEOUT = 40
@@ -139,9 +139,14 @@ def fetch_models():
 # ---------- METAR ----------
 def fetch_metar():
     out, errors = {}, []
+    url = ("https://aviationweather.gov/api/data/metar?ids=%s&format=json"
+           % ",".join(STATIONS))
     try:
-        j = get_json("https://aviationweather.gov/api/data/metar?ids=%s&format=json"
-                     % ",".join(STATIONS))
+        try:
+            j = get_json(url)
+        except Exception:
+            time.sleep(8)            # ניסיון שני אחד; נכשל שוב → נרשם עם קוד ה-HTTP
+            j = get_json(url)
         for ob in j:
             icao = ob.get("icaoId")
             if icao not in STATIONS:
@@ -164,7 +169,8 @@ def fetch_metar():
             if icao not in out:
                 errors.append("%s:missing" % icao)
     except Exception as ex:
-        errors.append(type(ex).__name__)
+        code = getattr(ex, "code", None)   # HTTPError → 403/429/5xx, כדי לדעת מה קרה
+        errors.append("%s:%s" % (type(ex).__name__, code) if code else type(ex).__name__)
     return out, errors
 
 
