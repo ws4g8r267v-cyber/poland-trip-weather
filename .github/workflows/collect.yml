@@ -1,10 +1,20 @@
 name: collect
-# poland-trip-weather · v0.1
-# ריצה כל 3 שעות + הפעלה ידנית מלשונית Actions. התזמון של GitHub לא מובטח לדקה.
+# poland-trip-weather · v0.2
+# ריצה כל 3 שעות + הפעלה ידנית מלשונית Actions (וגם מה-NAS כל שעה).
+# v0.2: אחרי האיסוף - כרטיס בוקר כתמונה (render_cards.py) להיום ולמחר
+#       בימי הטיול בלבד. בהפעלה ידנית אפשר לבחור all = כל 7 הימים לבדיקה.
+#       כשל ברינדור לא עוצר את שמירת הנתונים.
 on:
   schedule:
     - cron: "23 */3 * * *"
   workflow_dispatch:
+    inputs:
+      cards:
+        description: "כרטיסים: auto = היום ומחר בימי הטיול · all = כל 7 הימים"
+        required: false
+        default: auto
+        type: choice
+        options: [auto, all]
 
 permissions:
   contents: write
@@ -16,7 +26,7 @@ concurrency:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,6 +34,30 @@ jobs:
           python-version: "3.12"
       - name: collect
         run: python collect.py
+      - name: cards
+        continue-on-error: true
+        env:
+          CARDS: ${{ github.event.inputs.cards || 'auto' }}
+        run: |
+          python - <<'EOF'
+          import datetime as dt, os, sys
+          from zoneinfo import ZoneInfo
+          d = dt.datetime.now(ZoneInfo("Europe/Warsaw")).date()
+          need = os.environ["CARDS"] == "all" or any(
+              (d + dt.timedelta(days=a)).timetuple()[:2] == (2026, 11)
+              and 18 <= (d + dt.timedelta(days=a)).day <= 24
+              for a in (0, 1))
+          open(os.environ["GITHUB_ENV"], "a").write(
+              "NEED_CARDS=%d\n" % need)
+          print("need cards:", need)
+          EOF
+          if [ "$(grep -c NEED_CARDS=1 "$GITHUB_ENV")" = "0" ]; then
+            echo "outside the trip - no cards"; exit 0
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-color-emoji >/dev/null
+          pip install -q playwright
+          python render_cards.py "$CARDS"
       - name: commit data
         run: |
           git config user.name  "trip-weather-bot"
