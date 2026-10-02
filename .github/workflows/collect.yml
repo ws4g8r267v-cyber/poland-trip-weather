@@ -1,9 +1,10 @@
 name: collect
-# poland-trip-weather · v0.2
+# poland-trip-weather · v0.2.1
 # ריצה כל 3 שעות + הפעלה ידנית מלשונית Actions (וגם מה-NAS כל שעה).
 # v0.2: אחרי האיסוף - כרטיס בוקר כתמונה (render_cards.py) להיום ולמחר
 #       בימי הטיול בלבד. בהפעלה ידנית אפשר לבחור all = כל 7 הימים לבדיקה.
 #       כשל ברינדור לא עוצר את שמירת הנתונים.
+# v0.2.1: גופנים שהועלו לשורש הריפו עוברים לבד ל-fonts/ (פעם אחת).
 on:
   schedule:
     - cron: "23 */3 * * *"
@@ -34,6 +35,16 @@ jobs:
           python-version: "3.12"
       - name: collect
         run: python collect.py
+      - name: tidy fonts
+        run: |
+          if ls rubik-*.woff2 >/dev/null 2>&1; then
+            mkdir -p fonts
+            git mv -k rubik-*.woff2 fonts/
+            if [ -f OFL-LICENSE.txt ]; then git mv -k OFL-LICENSE.txt fonts/; fi
+            echo "moved fonts to fonts/"; ls fonts
+          else
+            echo "fonts in place"
+          fi
       - name: cards
         continue-on-error: true
         env:
