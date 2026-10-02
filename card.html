@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>כרטיס בוקר · המסע לפולין</title>
+<style>
+/* poland-trip-weather · card.html v0.3
+   כרטיס בוקר לוואטסאפ, 1080×1350. אותם נתונים ואותם כללים כמו index.html
+   (pick / chill / wear / Math.round). ?day=18..24 · ברירת מחדל: היום בפולין. */
+@font-face{font-family:Rubik;font-weight:400;src:url(fonts/rubik-hebrew-400-normal.woff2) format("woff2");unicode-range:U+0590-05FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F}
+@font-face{font-family:Rubik;font-weight:700;src:url(fonts/rubik-hebrew-700-normal.woff2) format("woff2");unicode-range:U+0590-05FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F}
+@font-face{font-family:Rubik;font-weight:800;src:url(fonts/rubik-hebrew-800-normal.woff2) format("woff2");unicode-range:U+0590-05FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F}
+@font-face{font-family:Rubik;font-weight:400;src:url(fonts/rubik-latin-400-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2013-2014,U+2019-201D,U+2022}
+@font-face{font-family:Rubik;font-weight:700;src:url(fonts/rubik-latin-700-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2013-2014,U+2019-201D,U+2022}
+@font-face{font-family:Rubik;font-weight:800;src:url(fonts/rubik-latin-800-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2013-2014,U+2019-201D,U+2022}
+*{box-sizing:border-box;margin:0}
+html,body{width:1080px;height:1350px;overflow:hidden}
+body{font-family:Rubik,"Noto Color Emoji",sans-serif;color:#f2f6ff;
+  background:radial-gradient(circle at 85% 0%,#2f4f8f 0,#17264a 45%,#0b1226 100%)}
+.card{position:absolute;inset:36px;border-radius:44px;border:2px solid rgba(140,180,255,.35);
+  background:linear-gradient(165deg,rgba(40,64,118,.70),rgba(12,20,44,.92));padding:52px 56px;overflow:hidden}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:28px;color:#a9c4f5}
+.pill{border:2px solid #7aa6ff;border-radius:40px;padding:8px 24px;font-size:26px;color:#e6efff}
+.pill.fc{border-color:#4ade80;color:#bff5d2}
+h1{font-size:74px;font-weight:800;margin:22px 0 4px;line-height:1.1}
+h1 span{color:#ffd65a}
+.day{font-size:36px;color:#cfdcf7}
+.rows{margin-top:24px;display:flex;flex-direction:column;gap:12px}
+.row{display:grid;grid-template-columns:72px 1fr auto;align-items:center;gap:22px;
+  background:rgba(255,255,255,.07);border-radius:26px;padding:13px 26px}
+.ic{font-size:54px;text-align:center}
+.nm{font-size:36px;font-weight:700}
+.sub{font-size:24px;color:#b7c8ea;margin-top:2px}
+.tt{text-align:left;white-space:nowrap}
+.tt b{font-size:46px;font-weight:800;direction:ltr;unicode-bidi:isolate;display:inline-block}
+.tt small{display:block;font-size:23px;color:#b7c8ea}
+.tip{margin-top:20px;background:#164f45;border-radius:26px;padding:22px 30px;font-size:30px;line-height:1.45}
+.tip b{color:#9ff0cf}
+.tip .ws{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.tip .w{white-space:nowrap;background:rgba(255,255,255,.10);border-radius:30px;padding:4px 18px;font-size:28px}
+.tip .dk{display:block;margin-top:8px;color:#cfeee2}
+.foot{position:absolute;bottom:34px;left:56px;right:56px;display:flex;justify-content:space-between;
+  font-size:22px;color:#8ea5cc}
+.l{direction:ltr;unicode-bidi:isolate;display:inline-block}
+.err{font-size:40px;margin-top:80px}
+</style>
+</head>
+<body>
+<div class="card" id="card"><div class="err">טוען…</div></div>
+<script>
+const DOW={0:"א׳",1:"ב׳",2:"ג׳",3:"ד׳",4:"ה׳",5:"ו׳",6:"שבת"};
+const SITES=[
+ {id:"warsaw",name:"ורשה",short:"אומשלגפלאץ",sun:{18:["07:02","15:39"],19:["07:03","15:38"],20:["07:05","15:37"],21:["07:07","15:35"],22:["07:08","15:34"],23:["07:10","15:33"],24:["07:12","15:32"]}},
+ {id:"treblinka",name:"טרבלינקה",short:"אתר ההנצחה",sun:{18:["06:59","15:33"],19:["07:01","15:32"],20:["07:02","15:31"],21:["07:04","15:30"],22:["07:06","15:28"],23:["07:08","15:27"],24:["07:09","15:26"]}},
+ {id:"majdanek",name:"מיידנק",short:"לובלין",sun:{18:["06:51","15:37"],19:["06:53","15:35"],20:["06:55","15:34"],21:["06:56","15:33"],22:["06:58","15:32"],23:["06:59","15:31"],24:["07:01","15:30"]}},
+ {id:"birkenau",name:"אושוויץ-בירקנאו",short:"רוב הביקור בחוץ",outdoor:true,sun:{18:["07:01","15:55"],19:["07:02","15:54"],20:["07:04","15:53"],21:["07:05","15:51"],22:["07:07","15:50"],23:["07:08","15:49"],24:["07:10","15:49"]}},
+ {id:"krakow",name:"קראקוב",short:"קז׳ימייז׳",sun:{18:["06:58","15:52"],19:["06:59","15:50"],20:["07:01","15:49"],21:["07:02","15:48"],22:["07:04","15:47"],23:["07:05","15:46"],24:["07:07","15:45"]}}
+];
+/* ---- the same rules and wording as index.html v1.3.2 (wear: same strings) ---- */
+function chill(t,v){if(t==null)return null;if(v==null||t>10||v<4.8)return Math.round(t);
+  const p=Math.pow(v,0.16);return Math.round(13.12+0.6215*t-11.37*p+0.3965*t*p);}
+const T=t=>t==null?"—":Math.round(t)+"°";
+function pick(D,site,day){
+  const k="2026-11-"+String(day).padStart(2,"0"),met=D?.met?.[site]?.[k],mods=D?.models?.[site]||{};
+  if(met&&met.n>=3&&met.tmax!=null) return {mode:"fc",tmin:met.tmin,tmax:met.tmax,mm:met.mm,pop:met.pop,wind:met.wind};
+  const e=mods.ecmwf?.[k]||mods.icon?.[k]||mods.gfs?.[k];
+  if(e&&e.tmax!=null) return {mode:"fc",tmin:e.tmin,tmax:e.tmax,mm:e.mm,pop:null,wind:e.wind!=null?Math.round(e.wind):null};
+  const c=D?.climate?.[site];
+  if(c) return {mode:"cl",tmin:c.tmin,tmax:c.tmax,mm:c.mm,pop:c.wet,wind:c.wind};
+  return {mode:"none"};
+}
+function icon(w){
+  if(w.mode!=="cl"&&w.mm!=null&&w.mm>=1) return (w.tmin!=null&&w.tmin<=0)?"🌨️":"🌧️";
+  if(w.pop!=null&&w.pop>=50) return "🌦️";
+  if(w.tmax!=null&&w.tmax<=0) return "❄️";
+  return "⛅";
+}
+function wearAll(D,day){
+  const out=[];let fmin=null,wet=false,mm=false,slip=false;
+  SITES.forEach(s=>{const w=pick(D,s.id,day);if(w.mode==="none")return;
+    const f=chill(w.tmin,w.wind);if(f!=null)fmin=fmin==null?f:Math.min(fmin,f);
+    if((w.pop!=null&&w.pop>=50)||(w.mm!=null&&w.mm>=1))wet=true;
+    if(w.mm!=null&&w.mm>0.5)mm=true;
+    if(w.tmin!=null&&w.tmin<=0&&w.mm!=null&&w.mm>0)slip=true;});
+  if(fmin!=null){ if(fmin<=-3) out.push("שכבה תרמית מתחת","כובע, כפפות, צעיף"); else if(fmin<=3) out.push("מעיל חם","כפפות וכובע"); else out.push("מעיל"); }
+  if(wet) out.push("מעיל עמיד למים"); if(mm) out.push("נעליים סגורות ועמידות למים");
+  if(slip) out.push("חשש להחלקה בבוקר");
+  return out;
+}
+function draw(D,day){
+  const date=new Date(Date.UTC(2026,10,day,12));
+  const modes=new Set(SITES.map(s=>pick(D,s.id,day).mode));
+  const allFc=modes.size===1&&modes.has("fc");
+  const rows=SITES.map(s=>{const w=pick(D,s.id,day);if(w.mode==="none")return "";
+    const f=chill(w.tmin,w.wind);
+    const rain=w.pop!=null?(w.mode==="cl"?w.pop+"% ימי גשם":"גשם "+w.pop+"%"):(w.mm!=null?"גשם "+w.mm+" מ\"מ":"");
+    const sub=[s.short,rain,"רוח "+(w.wind??"—")+" קמ\"ש"].filter(Boolean).join(" · ");
+    return `<div class="row"><div class="ic">${icon(w)}</div>
+      <div><div class="nm">${s.name}</div><div class="sub">${sub}</div></div>
+      <div class="tt"><b>${T(w.tmin)} – ${T(w.tmax)}</b><small>מורגש עד <span class="l">${T(f)}</span></small></div></div>`;}).join("");
+  const sun=SITES[0].sun[day];
+  const wear=wearAll(D,day);
+  document.getElementById("card").innerHTML=`
+    <div class="top"><div>המסע לפולין 2026</div>
+      <div class="pill ${allFc?"fc":""}">${allFc?"תחזית":"ממוצע עונה"}</div></div>
+    <h1>🌅 בוקר <span>טוב!</span></h1>
+    <div class="day">יום ${DOW[date.getUTCDay()]} <span class="l">${day}/11</span> · זריחה <span class="l">${sun[0]}</span> · שקיעה <span class="l">${sun[1]}</span></div>
+    <div class="rows">${rows}</div>
+    <div class="tip">🧤 <b>מה ללבוש היום</b><span class="ws">${wear.map(x=>`<span class="w">${x}</span>`).join("")}</span>
+      <span class="dk">🌙 שקיעה ב-<span class="l">${sun[1]}</span>, חושך לפני <span class="l">16:00</span></span></div>
+    <div class="foot"><div><span class="l">MET Norway · Open-Meteo · CC BY 4.0</span></div>
+      <div>עודכן <span class="l">${new Date(D.generated).toLocaleString("he-IL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Europe/Warsaw"})}</span> שעון פולין</div></div>`;
+  document.body.setAttribute("data-ready","1");
+}
+(async()=>{
+  const q=new URLSearchParams(location.search);
+  let day=parseInt(q.get("day")||"0",10);
+  if(!(day>=18&&day<=24)){
+    const pl=new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Warsaw"}));
+    day=(pl.getFullYear()===2026&&pl.getMonth()===10&&pl.getDate()>=18&&pl.getDate()<=24)?pl.getDate():18;
+  }
+  try{
+    const r=await fetch((q.get("data")||"data/latest.json")+"?t="+Date.now(),{cache:"no-store"});
+    if(!r.ok) throw new Error(r.status);
+    draw(await r.json(),day);
+  }catch(e){document.getElementById("card").innerHTML='<div class="err">אין נתונים ('+e.message+')</div>';
+    document.body.setAttribute("data-ready","err");}
+})();
+</script>
+</body>
+</html>
