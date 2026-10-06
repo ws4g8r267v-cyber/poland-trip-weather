@@ -1,10 +1,14 @@
 name: collect
-# poland-trip-weather · v0.2.1
+# poland-trip-weather · v0.2.2
 # ריצה כל 3 שעות + הפעלה ידנית מלשונית Actions (וגם מה-NAS כל שעה).
 # v0.2: אחרי האיסוף - כרטיס בוקר כתמונה (render_cards.py) להיום ולמחר
 #       בימי הטיול בלבד. בהפעלה ידנית אפשר לבחור all = כל 7 הימים לבדיקה.
 #       כשל ברינדור לא עוצר את שמירת הנתונים.
 # v0.2.1: גופנים שהועלו לשורש הריפו עוברים לבד ל-fonts/ (פעם אחת).
+# v0.2.2: שמירה עמידה. ריצה שהתעכבה (cron) נבנית על הקומיט שהיה בזמן ההפעלה,
+#         ואם בינתיים ריצה אחרת או העלאה ידנית דחפו ל-main - ה-push נדחה (06/10 01:53Z).
+#         עכשיו: לוקחים את main העדכני ושמים עליו רק את הקבצים שהריצה הזו שינתה ב-data/.
+#         עד 3 ניסיונות. קבצים אחרים בריפו לא נוגעים.
 on:
   schedule:
     - cron: "23 */3 * * *"
@@ -75,8 +79,24 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add data/
           if git diff --cached --quiet; then
-            echo "no change"
-          else
-            git commit -m "data $(date -u +%Y-%m-%dT%H:%MZ)"
-            git push
+            echo "no change"; exit 0
           fi
+          CHG=$(git diff --cached --name-only --diff-filter=AM -- data/)
+          SAVE="$RUNNER_TEMP/newdata.tar"
+          tar -cf "$SAVE" $CHG
+          echo "changed by this run:"; echo "$CHG"
+          for i in 1 2 3; do
+            git fetch -q origin main
+            git reset -q --hard origin/main
+            tar -xf "$SAVE"
+            git add $CHG
+            if git diff --cached --quiet; then
+              echo "no change vs main"; exit 0
+            fi
+            git commit -q -m "data $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push -q origin HEAD:main; then
+              echo "pushed (try $i)"; exit 0
+            fi
+            echo "push rejected (try $i) - retry"; sleep $((i*5))
+          done
+          echo "push failed 3 times"; exit 1
