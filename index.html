@@ -146,6 +146,15 @@ td:first-child,th:first-child{text-align:right}
 [hidden]{display:none !important}
 .badge{font-size:11.5px;border-radius:8px;padding:4px 10px;vertical-align:middle;border:1px solid var(--line);font-weight:700;display:inline-block;letter-spacing:0.02em}
 .badge.fc{border-color:var(--ok);background:rgba(74, 222, 128, 0.2);color:var(--ok)}
+.badge.mine{border-color:var(--accent);background:var(--accent-glow);color:var(--accent);margin-inline-start:6px}
+.site.mine{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.mybtn{font-family:inherit;font-weight:700;font-size:12.5px;border-radius:10px;padding:5px 11px;cursor:pointer;border:1px solid var(--accent);background:transparent;color:var(--accent)}
+.mybtn.on{background:var(--accent);color:#fff}
+.mypick{display:flex;align-items:center;gap:8px;margin:10px 0 0;padding:9px 12px;border:1px dashed var(--accent);border-radius:12px;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer}
+.mypick input{width:18px;height:18px;accent-color:var(--accent)}
+.myhelp{font-size:12.5px;color:var(--ink3);font-weight:500;width:100%}
+.others{grid-column:1/-1;margin-top:4px}
+.others>.sites-grid{margin-top:14px}
 .badge.cl{border-color:var(--warn);background:rgba(251, 191, 36, 0.2);color:var(--warn)}
 @media(max-width:768px){
   header{flex-direction:column;align-items:stretch}
@@ -185,17 +194,25 @@ td:first-child,th:first-child{text-align:right}
 
   <div class="foot">
     <div>תחזית: <span class="ltr">MET Norway</span> · מודלים <span class="ltr">ICON, ECMWF, GFS</span> וממוצע עונה: <span class="ltr">Open-Meteo</span> · רישיון <span class="ltr">CC BY 4.0</span> · מדידה: <span class="ltr">METAR NOAA</span></div>
-    <div id="ver">גרסה 1.4.0</div>
+    <div id="ver">גרסה 1.5.0</div>
   </div>
 </div>
 
 <script>
-/* poland-trip-weather · index.html v1.4.0 — עבודה בלי רשת (sw.js + עותק אחרון במכשיר), הוספה למסך הבית,
+/* poland-trip-weather · index.html v1.5.0 — "האתרים שלי": כל אחד מסמן בטלפון שלו באילו אתרים הוא ביום מסוים.
+   הבחירה נשמרת רק במכשיר (localStorage ptw_mysites) ולא נשלחת לשום מקום; בקוד אין תאריך או מקום של הקבוצה.
+   המספרים זהים ל-v1.4.0. מבוסס על v1.4.0:
+   v1.4.0 — עבודה בלי רשת (sw.js + עותק אחרון במכשיר), הוספה למסך הבית,
    פתיחה על היום הנוכחי בימי המסע, משפט על אופי השטח בכל אתר, "מתעדכנת כל שעה". מבוסס על v1.3.3 */
-const VERSION="1.4.0";
+const VERSION="1.5.0";
 const DEPART_UTC = Date.UTC(2026,10,18,4,0);
 const DAYS = [18,19,20,21,22,23,24];
 const DOW  = {18:"ד׳",19:"ה׳",20:"ו׳",21:"שבת",22:"א׳",23:"ב׳",24:"ג׳"};
+const MY_KEY="ptw_mysites";
+function myLoad(){ try{ const o=JSON.parse(localStorage.getItem(MY_KEY)||"{}"); return (o&&typeof o==="object")?o:{}; }catch(e){ return {}; } }
+function mySites(day){ const a=myLoad()[day]; return Array.isArray(a)?a:[]; }
+function mySet(day,ids){ const o=myLoad(); if(ids.length) o[day]=ids; else delete o[day]; try{ localStorage.setItem(MY_KEY,JSON.stringify(o)); }catch(e){} }
+let MYEDIT=false;
 const iso = d => "2026-11-"+String(d).padStart(2,"0");
 const STATIONS = {
   EPWA:{name:"נמל התעופה ורשה",lat:52.1657,lon:20.9671},
@@ -337,13 +354,17 @@ function drawDays(){
   DAYS.forEach(d=>{
     const b=document.createElement("button"); b.className="day"; b.setAttribute("role","tab");
     b.setAttribute("aria-pressed",d===cur); b.innerHTML=DOW[d]+"<small>"+d+"/11</small>"+(d===TODAY?'<span class="today">היום</span>':"");
-    b.onclick=()=>{cur=d;picked=true;drawDays();drawSites();}; box.appendChild(b);
+    b.onclick=()=>{cur=d;picked=true;MYEDIT=false;drawDays();drawSites();}; box.appendChild(b);
   });
   /* בימי המסע: לגלול את פס הימים כך שהיום הנבחר ייראה (22–24/11 נמצאים מחוץ למסך בטלפון) */
   if(!picked){ const sel=box.querySelector('.day[aria-pressed="true"]');
     if(sel){ const bx=box.getBoundingClientRect(), sx=sel.getBoundingClientRect();
       if(sx.left<bx.left||sx.right>bx.right) box.scrollLeft+= (sx.left+sx.width/2)-(bx.left+bx.width/2); } }
-  document.getElementById("daynote").innerHTML = `<span>${cur===TODAY?"היום · ":""}יום ${DOW[cur]} ${cur}/11</span> · תחזית מזג אוויר לאתרי המסע:`;
+  const mine=mySites(cur);
+  document.getElementById("daynote").innerHTML = `<span>${cur===TODAY?"היום · ":""}יום ${DOW[cur]} ${cur}/11</span> · תחזית מזג אוויר לאתרי המסע:`+
+    ` <button class="mybtn${MYEDIT?" on":""}" id="myBtn">${MYEDIT?"✔ סיום":mine.length?"📍 האתרים שלי ("+mine.length+") · שינוי":"📍 לסמן את האתרים שלי ביום הזה"}</button>`+
+    (MYEDIT?'<span class="myhelp">מסמנים את האתרים שבהם אתם ביום הזה. הסימון נשמר רק בטלפון הזה ולא נשלח לשום מקום.</span>':"");
+  document.getElementById("myBtn").onclick=()=>{MYEDIT=!MYEDIT;drawDays();drawSites();};
 }
 function metarLine(site){
   const st=STATIONS[site.st], dist=km(site,st), far=dist>50;
@@ -357,9 +378,14 @@ function metarLine(site){
 }
 function drawSites(){
   const box=document.getElementById("sites"); box.innerHTML="";
-  SITES.forEach((s,idx)=>{
+  const mine=mySites(cur), has=mine.length>0&&!MYEDIT;
+  let rest=null;
+  const order=SITES.map((s,idx)=>[s,idx]);
+  if(has) order.sort((a,b)=>(mine.includes(b[0].id)-mine.includes(a[0].id))||(a[1]-b[1]));
+  order.forEach(([s,idx])=>{
+    const isMine=mine.includes(s.id);
     const w=pick(s,cur), sun=s.sun[cur];
-    const el=document.createElement("div"); el.className="site";
+    const el=document.createElement("div"); el.className="site"+(isMine?" mine":"");
     const badge=w.mode==="fc"?'<span class="badge fc">תחזית</span>':w.mode==="cl"?'<span class="badge cl">עונה</span>':"";
     let body="";
     if(w.mode!=="none"){
@@ -389,7 +415,7 @@ function drawSites(){
       <div>
         <div class="site-header">
           <h2>${idx+1}. ${s.name}</h2>
-          ${badge}
+          <span>${badge}${isMine?'<span class="badge mine">📍 שלי</span>':""}</span>
         </div>
         <div class="where">${s.where}</div>
         <div class="sitenote">🧭 ${s.note}</div>
@@ -401,6 +427,7 @@ function drawSites(){
       <div>
         <div class="site-header">
           <h2>${idx+1}. ${s.name}</h2>
+          ${isMine?'<span class="badge mine">📍 שלי</span>':""}
         </div>
         <div class="where">${s.where}</div>
         <div class="sitenote">🧭 ${s.note}</div>
@@ -409,7 +436,24 @@ function drawSites(){
       </div>
       <div class="actual">${metarLine(s)}</div>`;
     }
-    box.appendChild(el);
+    if(MYEDIT){
+      const lb=document.createElement("label"); lb.className="mypick";
+      lb.innerHTML=`<input type="checkbox" data-site="${s.id}"${isMine?" checked":""}> אני באתר הזה ביום ${DOW[cur]} ${cur}/11`;
+      lb.querySelector("input").onchange=e=>{
+        const ids=SITES.map(x=>x.id).filter(id=>id===s.id?e.target.checked:mySites(cur).includes(id));
+        mySet(cur,ids); drawDays();
+        el.classList.toggle("mine",e.target.checked);
+      };
+      el.firstElementChild.appendChild(lb);
+    }
+    if(has&&!isMine){
+      if(!rest){
+        rest=document.createElement("details"); rest.className="others";
+        rest.innerHTML=`<summary>שאר האתרים (${SITES.length-mine.length})</summary><div class="sites-grid"></div>`;
+        box.appendChild(rest);
+      }
+      rest.lastElementChild.appendChild(el);
+    } else box.appendChild(el);
   });
 }
 function drawAll(){drawHeader();drawMode();drawDays();drawSites();}
