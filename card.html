@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=1080">
 <title>כרטיס בוקר · המסע לפולין</title>
 <style>
-/* poland-trip-weather · card.html v0.3
+/* poland-trip-weather · card.html v0.4
    כרטיס בוקר לוואטסאפ, 1080×1350. אותם נתונים ואותם כללים כמו index.html
-   (pick / chill / wear / Math.round). ?day=18..24 · ברירת מחדל: היום בפולין. */
+   (pick / chill / wear / Math.round). ?day=18..24 · ברירת מחדל: היום בפולין.
+   v0.4: ?greet=eve = כרטיס ערב ("ערב טוב!"), נשלח בערב שלפני היום. רק הכותרת משתנה. */
 @font-face{font-family:Rubik;font-weight:400;src:url(fonts/rubik-hebrew-400-normal.woff2) format("woff2");unicode-range:U+0590-05FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F}
 @font-face{font-family:Rubik;font-weight:700;src:url(fonts/rubik-hebrew-700-normal.woff2) format("woff2");unicode-range:U+0590-05FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F}
 @font-face{font-family:Rubik;font-weight:800;src:url(fonts/rubik-hebrew-800-normal.woff2) format("woff2");unicode-range:U+0590-05FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F}
@@ -104,7 +105,7 @@ function draw(D,day){
   document.getElementById("card").innerHTML=`
     <div class="top"><div>המסע לפולין 2026</div>
       <div class="pill ${allFc?"fc":""}">${allFc?"תחזית":"ממוצע עונה"}</div></div>
-    <h1>🌅 בוקר <span>טוב!</span></h1>
+    <h1>${EVE?"🌙 ערב":"🌅 בוקר"} <span>טוב!</span></h1>
     <div class="day">יום ${DOW[date.getUTCDay()]} <span class="l">${day}/11</span> · זריחה <span class="l">${sun[0]}</span> · שקיעה <span class="l">${sun[1]}</span></div>
     <div class="rows">${rows}</div>
     <div class="tip">🧤 <b>מה ללבוש היום</b><span class="ws">${wear.map(x=>`<span class="w">${x}</span>`).join("")}</span>
@@ -113,8 +114,10 @@ function draw(D,day){
       <div>עודכן <span class="l">${new Date(D.generated).toLocaleString("he-IL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Europe/Warsaw"})}</span> שעון פולין</div></div>`;
   document.body.setAttribute("data-ready","1");
 }
+let EVE=false;
 (async()=>{
   const q=new URLSearchParams(location.search);
+  EVE=q.get("greet")==="eve";
   let day=parseInt(q.get("day")||"0",10);
   if(!(day>=18&&day<=24)){
     const pl=new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Warsaw"}));

@@ -1,4 +1,4 @@
-"""poland-trip-weather · render_cards.py v0.1
+"""poland-trip-weather · render_cards.py v0.2
 
 Renders card.html (the morning card) to JPG for WhatsApp, from the same
 data/latest.json the screen reads, after collect.py has written it.
@@ -12,6 +12,11 @@ Which days:
 Writes data/cards/card-DD.jpg and data/cards/cards.json:
   {"rendered": ISO-UTC, "data_generated": ..., "days": {"18": {...}}}
 The agent reads cards.json and sends a card only if it is fresh.
+
+v0.2 - greeting: a card for a day AFTER today (Poland time) is the evening
+card ("ערב טוב!", card.html?greet=eve); today's or an earlier day's card is
+the morning one ("בוקר טוב!"). The agent sends tomorrow's card at 20:00 and
+today's at 07:00, so each gets the right greeting from the same file name.
 
 Browser: Google Chrome that is preinstalled on the GitHub runner
 (channel="chrome"); locally falls back to Playwright's Chromium.
@@ -44,6 +49,11 @@ def days_to_render(mode, now_pl):
         if d.year == 2026 and d.month == 11 and d.day in TRIP_DAYS:
             out.append(d.day)
     return out
+
+
+def greet_for(day, now_pl):
+    """'eve' for a card about a later day than today in Poland, else ''."""
+    return "eve" if dt.date(2026, 11, day) > now_pl.date() else ""
 
 
 def serve():
@@ -88,7 +98,9 @@ def main():
             pg = b.new_page(viewport={"width": 1080, "height": 1350})
             errs = []
             pg.on("pageerror", lambda e: errs.append(str(e)))
-            pg.goto("http://127.0.0.1:%d/card.html?day=%d" % (PORT, day))
+            greet = greet_for(day, now_pl)
+            pg.goto("http://127.0.0.1:%d/card.html?day=%d%s" % (
+                PORT, day, "&greet=eve" if greet else ""))
             pg.wait_for_selector("body[data-ready]", timeout=15000)
             pg.evaluate("document.fonts.ready")
             ready = pg.evaluate("document.body.dataset.ready")
@@ -107,8 +119,10 @@ def main():
                     timespec="seconds"),
                 "data_generated": data.get("generated"),
                 "md5": md5,
+                "greet": greet or "morning",
                 "bytes": os.path.getsize(path)}
-            print("ok day=%d %s %d bytes" % (day, md5, os.path.getsize(path)))
+            print("ok day=%d %s %s %d bytes" % (day, greet or "morning", md5,
+                                                os.path.getsize(path)))
         b.close()
     srv.shutdown()
     idx["rendered"] = dt.datetime.now(dt.timezone.utc).isoformat(
