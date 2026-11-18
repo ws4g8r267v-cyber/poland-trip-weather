@@ -108,7 +108,7 @@ function draw(D,day){
     <h1>${EVE?"🌙 ערב":"🌅 בוקר"} <span>טוב!</span></h1>
     <div class="day">יום ${DOW[date.getUTCDay()]} <span class="l">${day}/11</span> · זריחה <span class="l">${sun[0]}</span> · שקיעה <span class="l">${sun[1]}</span></div>
     <div class="rows">${rows}</div>
-    <div class="tip">🧤 <b>מה ללבוש היום</b><span class="ws">${wear.map(x=>`<span class="w">${x}</span>`).join("")}</span>
+    <div class="tip">🧤 <b>מה ללבוש ${EVE?"מחר":"היום"}</b><span class="ws">${wear.map(x=>`<span class="w">${x}</span>`).join("")}</span>
       <span class="dk">🌙 שקיעה ב-<span class="l">${sun[1]}</span>, חושך לפני <span class="l">16:00</span></span></div>
     <div class="foot"><div><span class="l">MET Norway · Open-Meteo · CC BY 4.0</span></div>
       <div>עודכן <span class="l">${new Date(D.generated).toLocaleString("he-IL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Europe/Warsaw"})}</span> שעון פולין</div></div>`;
